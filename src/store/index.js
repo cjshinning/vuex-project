@@ -28,5 +28,42 @@ export default new Vuex.Store({
     }
   },
   strict: true,
-  modules: {}
+  modules: {  //进行模块分割
+    a: {
+      namespaced: true,
+      state: {
+        name: 't1',
+        age: 10
+      },
+      getters: {
+        myAge(state) {
+          return state.age + 20;
+        }
+      },
+      mutations: {
+        changeAge(state, payload) {
+          state.age += payload;
+        }
+      },
+      modules: {
+        c: {
+          namespaced: true,
+          state: {
+            age: 100
+          },
+          mutations: {
+            changeAge(state, payload) {
+              state.age += payload;
+            }
+          },
+        }
+      }
+    },
+    b: {
+      state: {
+        name: 't2',
+        age: 20
+      }
+    }
+  }
 })
