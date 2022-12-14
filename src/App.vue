@@ -1,6 +1,6 @@
 <template>
-  <div id="app"></div>
-  <!-- <div id="app">
+  <!-- <div id="app"></div> -->
+  <div id="app">
     我的名字是：{{ this.$store.state.name }}，年龄：{{ this.$store.state.age }}<br />
     我的真实年龄是：{{ this.$store.getters.myAge }}<br />
     我的真实年龄是：{{ this.$store.getters.myAge }}
@@ -18,7 +18,7 @@
 
     c的年龄：{{ this.$store.state.a.c.age }}
     <button @click="$store.commit('a/c/changeAge', 10)">c更改年龄</button>
-  </div> -->
+  </div>
 </template>
 
 <script>
