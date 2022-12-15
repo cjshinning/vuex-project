@@ -6,6 +6,9 @@ function installModule(store, rootState, path, module) {
   // 需要循环当前模块的
   // module.state => 放到rootState对应的儿子里
 
+  // 获取moduleCollection类
+  let ns = store._module.getNamespaced(path);
+
   if (path.length > 0) {  //儿子模块
     // 需要找对对应模块，将状态声明上去
     // { name: 'jenny', age: 18, a: astate }
@@ -19,19 +22,19 @@ function installModule(store, rootState, path, module) {
   }
 
   module.forEachGetter((fn, key) => {
-    store.wrapperGetters[key] = function () {
+    store.wrapperGetters[ns + key] = function () {
       return fn.call(store, module.state);
     }
   });
   module.forEachMutation((fn, key) => {
-    store.mutations[key] = store.mutations[key] || [];
-    store.mutations[key].push((payload) => {
+    store.mutations[ns + key] = store.mutations[ns + key] || [];
+    store.mutations[ns + key].push((payload) => {
       return fn.call(store, module.state, payload);
     })
   });
   module.forEachAction((fn, key) => {
-    store.actions[key] = store.actions[key] || [];
-    store.actions[key].push((payload) => {
+    store.actions[ns + key] = store.actions[ns + key] || [];
+    store.actions[ns + key].push((payload) => {
       return fn.call(store, store, payload);
     })
   });

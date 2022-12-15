@@ -56,10 +56,19 @@ export default new Vuex.Store({
               state.age += payload;
             }
           },
+          // modules: {
+          //   d: {
+          //     namespaced: true,
+          //     state: {
+          //       age: 10
+          //     }
+          //   }
+          // }
         }
       }
     },
     b: {
+      namespaced: true,
       state: {
         name: 't2',
         age: 20

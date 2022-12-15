@@ -30,6 +30,10 @@ class Module {
   forEachChildren(cb) {
     this._children && forEach(this._children, cb);
   }
+  // 用于标识他自己是否写了namespaced
+  get namespaced() {  //module.namespaced
+    return !!this._raw.namespaced;
+  }
 }
 
 export default Module;

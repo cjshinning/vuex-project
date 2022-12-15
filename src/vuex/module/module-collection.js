@@ -8,6 +8,17 @@ class ModuleCollection {
     this.root = null;
     this.register([], options);
   }
+  getNamespaced(path) {
+    // 返回一个字符串 a/b/c ''
+    let root = this.root;
+    let ns = path.reduce((ns, key) => { //this.root.c.namespace
+      let module = root.getChild(key);
+      root = module;
+      return module.namespaced ? ns + key + '/' : ns;
+    }, '')
+    console.log(ns);
+    return ns;
+  }
   register(path, rawModule) {
     let newModule = new Module(rawModule);
 
