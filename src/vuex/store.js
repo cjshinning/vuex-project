@@ -2,6 +2,12 @@ import { forEach } from './util';
 import { Vue } from './install';
 import ModuleCollection from './module/module-collection';
 
+function getNewState(store, path) {
+  return path.reduce((memo, current) => {
+    return memo[current];
+  }, store.state)
+}
+
 function installModule(store, rootState, path, module) {
   // 需要循环当前模块的
   // module.state => 放到rootState对应的儿子里
@@ -23,13 +29,14 @@ function installModule(store, rootState, path, module) {
 
   module.forEachGetter((fn, key) => {
     store.wrapperGetters[ns + key] = function () {
-      return fn.call(store, module.state);
+      return fn.call(store, getNewState(store, path));
     }
   });
   module.forEachMutation((fn, key) => {
     store.mutations[ns + key] = store.mutations[ns + key] || [];
     store.mutations[ns + key].push((payload) => {
-      return fn.call(store, module.state, payload);
+      fn.call(store, getNewState(store, path), payload);
+      store._subscribe.forEach(fn => fn({ type: ns + key, payload }, store.state));
     })
   });
   module.forEachAction((fn, key) => {
@@ -60,7 +67,7 @@ class Store {
     // }
 
     this._module = new ModuleCollection(options);  //对用户的参数进行格式化操作
-    console.log(this._module);
+    // console.log(this._module);
 
     this.wrapperGetters = {};
     this.getters = {};  //需要将模块中所有的getters，mutations，actions收集
@@ -68,6 +75,7 @@ class Store {
     this.actions = {};
 
     const computed = {};
+    this._subscribe = [];
 
     // 没有namespaced的时候getters都放在跟上，mutations，actions会被合并数组
     let state = options.state;
@@ -83,7 +91,16 @@ class Store {
         $$state: state
       },
       computed
-    })
+    });
+    if (options.plugins) {
+      options.plugins.forEach(plugin => plugin(this));
+    }
+  }
+  subscribe(fn) {
+    this._subscribe.push(fn);
+  }
+  replaceState(newState) {
+    this._vm._data.$$state = newState;  //替换最新的状态
   }
   get state() {
     return this._vm._data.$$state;
