@@ -51,6 +51,31 @@ function installModule(store, rootState, path, module) {
 
 }
 
+function resetVM(store, state) {
+  let oldVm = store._vm;
+  store.getters = {};  //需要将模块中所有的getters，mutations，actions收集
+  const computed = {};
+  forEach(store.wrapperGetters, (getter, key) => {
+    computed[key] = getter;
+    Object.defineProperty(store.getters, key, {
+      get: () => store._vm[key]
+    })
+  })
+
+  store._vm = new Vue({
+    data: {
+      $$state: state
+    },
+    computed
+  });
+
+  if (oldVm) {  //重新创建实例后，需要将老的实例注销
+    Vue.nextTick(() => {
+      oldVm.$destroy();
+    })
+  }
+}
+
 class Store {
   constructor(options) {
     // 对用户的模块进行整合
@@ -70,28 +95,16 @@ class Store {
     // console.log(this._module);
 
     this.wrapperGetters = {};
-    this.getters = {};  //需要将模块中所有的getters，mutations，actions收集
     this.mutations = {};
     this.actions = {};
 
-    const computed = {};
     this._subscribe = [];
 
     // 没有namespaced的时候getters都放在跟上，mutations，actions会被合并数组
     let state = options.state;
     installModule(this, state, [], this._module.root);
-    forEach(this.wrapperGetters, (getter, key) => {
-      computed[key] = getter;
-      Object.defineProperty(this.getters, key, {
-        get: () => this._vm[key]
-      })
-    })
-    this._vm = new Vue({
-      data: {
-        $$state: state
-      },
-      computed
-    });
+
+    resetVM(this, state);
     if (options.plugins) {
       options.plugins.forEach(plugin => plugin(this));
     }
@@ -110,6 +123,16 @@ class Store {
   }
   dispatch = (actionName, payload) => {
     this.actions[actionName] && this.mutations[actionName].forEach(fn => fn(payload));
+  }
+
+  registerModule(path, module) {  //最终都转成数组
+    if (typeof path == 'string') path = [path];
+    this._module.register(path, module);
+
+    // 将用户的module 重新安装，虽然重新安装了，只解决了状态问题，但是computed丢失了
+    installModule(this, this.state, path, module.newModule);
+
+    resetVM(this, this.state);
   }
 }
 

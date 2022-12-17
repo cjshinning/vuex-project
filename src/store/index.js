@@ -100,12 +100,12 @@ export default new Vuex.Store({
         }
       }
     },
-    b: {
-      namespaced: true,
-      state: {
-        name: 't2',
-        age: 20
-      }
-    }
+    // b: {
+    //   namespaced: true,
+    //   state: {
+    //     name: 't2',
+    //     age: 20
+    //   }
+    // }
   }
 })

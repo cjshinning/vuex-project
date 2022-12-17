@@ -18,12 +18,34 @@
 
     c的年龄：{{ this.$store.state.a.c.age }}
     <button @click="$store.commit('a/c/changeAge', 10)">c更改年龄</button>
+
+    <hr>
+    <button @click="registerModule">动态注册模块</button>
+    b模块：{{ this.$store.state.b && this.$store.state.b.name }} {{ this.$store.state.b && this.$store.state.b.age
+    }}
+    {{ this.$store.getters.bAge && this.$store.getters.bAge }}
   </div>
 </template>
 
 <script>
+import store from './store';
 export default {
   name: 'app',
+  methods: {
+    registerModule() {
+      store.registerModule('b', {
+        state: {
+          name: 'Jane',
+          age: 30
+        },
+        getters: {
+          bAge(state) {
+            return state.age + 1;
+          }
+        }
+      })
+    }
+  },
   mounted() {
     // console.log(this.$store);
   }
