@@ -60,7 +60,7 @@ export default new Vuex.Store({
       }, 1000)
     }
   },
-  strict: true,
+  strict: true, //如果不是在mutation中菜哦在的状态会发生警告
   modules: {  //进行模块分割
     a: {
       namespaced: true,

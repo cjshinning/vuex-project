@@ -16,7 +16,7 @@ class ModuleCollection {
       root = module;
       return module.namespaced ? ns + key + '/' : ns;
     }, '')
-    console.log(ns);
+    // console.log(ns);
     return ns;
   }
   register(path, rawModule) {

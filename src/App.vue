@@ -5,6 +5,7 @@
     我的真实年龄是：{{ this.$store.getters.myAge }}<br />
     我的真实年龄是：{{ this.$store.getters.myAge }}
 
+    <button @click="$store.state.age++">非法更改状态</button>
     <button @click="$store.commit('changeAge', 10)">修改年龄</button>
     <button @click="$store.dispatch('changeAgeAsync', 10)">异步年龄</button>
 

@@ -22,9 +22,12 @@ function installModule(store, rootState, path, module) {
       return memo[current];
     }, rootState);
     // 对象新增属性不能导致重新更新视图
-    Vue.set(parent, path[path.length - 1], module.state)
+    store._withCommitting(() => {
+      Vue.set(parent, path[path.length - 1], module.state)
+    })
+
     // parent[path[path.length - 1]] = module.state;
-    console.log(rootState);
+    // console.log(rootState);
   }
 
   module.forEachGetter((fn, key) => {
@@ -35,7 +38,9 @@ function installModule(store, rootState, path, module) {
   module.forEachMutation((fn, key) => {
     store.mutations[ns + key] = store.mutations[ns + key] || [];
     store.mutations[ns + key].push((payload) => {
-      fn.call(store, getNewState(store, path), payload);
+      store._withCommitting(() => {
+        fn.call(store, getNewState(store, path), payload);
+      })
       store._subscribe.forEach(fn => fn({ type: ns + key, payload }, store.state));
     })
   });
@@ -48,7 +53,6 @@ function installModule(store, rootState, path, module) {
   module.forEachChildren((child, key) => {
     installModule(store, rootState, path.concat(key), child);
   })
-
 }
 
 function resetVM(store, state) {
@@ -68,6 +72,14 @@ function resetVM(store, state) {
     },
     computed
   });
+
+  if (store.strict) { //说明是严格模式我要监控状态
+    // 如果状态更新 原则上 异步更新
+    store._vm.$watch(() => store._vm._data.$$state, () => {
+      // 我希望状态变化后，直接就能监控到，wacther都是异步的？状态变化会立即执行，不是异步watcher
+      console.assert(store._committing, 'no mutate in mutation handler outside');
+    }, { deep: true, snyc: true })
+  }
 
   if (oldVm) {  //重新创建实例后，需要将老的实例注销
     Vue.nextTick(() => {
@@ -99,6 +111,9 @@ class Store {
     this.actions = {};
 
     this._subscribe = [];
+    this._committing = false; //默认不是在mutation中更改的
+    this.strict = options.strict;
+
 
     // 没有namespaced的时候getters都放在跟上，mutations，actions会被合并数组
     let state = options.state;
@@ -109,11 +124,18 @@ class Store {
       options.plugins.forEach(plugin => plugin(this));
     }
   }
+  _withCommitting(fn) {
+    this._committing = true;  //如果是true
+    fn(); //函数是同步的，获取_committing就是true，如果是异步的就会变成false，就会打印日志
+    this._committing = false;
+  }
   subscribe(fn) {
     this._subscribe.push(fn);
   }
   replaceState(newState) {
-    this._vm._data.$$state = newState;  //替换最新的状态
+    this._withCommitting(() => {
+      this._vm._data.$$state = newState;  //替换最新的状态
+    })
   }
   get state() {
     return this._vm._data.$$state;
