@@ -78,7 +78,7 @@ function resetVM(store, state) {
     store._vm.$watch(() => store._vm._data.$$state, () => {
       // 我希望状态变化后，直接就能监控到，wacther都是异步的？状态变化会立即执行，不是异步watcher
       console.assert(store._committing, 'no mutate in mutation handler outside');
-    }, { deep: true, snyc: true })
+    }, { deep: true, sync: true })
   }
 
   if (oldVm) {  //重新创建实例后，需要将老的实例注销
